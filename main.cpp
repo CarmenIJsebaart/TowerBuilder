@@ -2,7 +2,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
-void check_collision(sf::RectangleShape initial_block, int &build_block_y_position, std::vector<sf::RectangleShape> block_vector);
+void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector);
 void check_movement_direction(sf::RectangleShape build_block, const int window_width, const int block_size, bool &block_move_right, bool &block_move_left);
 void draw_blocks(sf::RenderWindow &window, sf::RectangleShape &build_block, std::vector<sf::RectangleShape> block_vector);
 void move_block(sf::RectangleShape &build_block, bool block_move_right, bool block_move_left);
@@ -13,6 +13,8 @@ int main()
    const int window_width = 300;
    sf::RenderWindow window(sf::VideoMode(window_width, window_height), "TowerBuilder", sf::Style::Titlebar | sf::Style::Close);
 
+   std::vector<sf::RectangleShape> block_vector;
+
    sf::RectangleShape initial_block;
    const int initial_block_size = 50;
    const int initial_block_x_position = (window_width - initial_block_size) / 2; //in the middle of the screen
@@ -21,6 +23,8 @@ int main()
    initial_block.setSize(sf::Vector2f(initial_block_size, initial_block_size));
    initial_block.setPosition(initial_block_x_position, initial_block_y_position);
    initial_block.setFillColor(sf::Color::Yellow);
+
+   block_vector.push_back(initial_block);
 
    sf::RectangleShape build_block;
    int block_size = 50;
@@ -33,8 +37,6 @@ int main()
 
    sf::Clock clock;
 
-   std::vector<sf::RectangleShape> block_vector;
-
    bool block_move_right = true;
    bool block_move_left = false;
 
@@ -44,31 +46,27 @@ int main()
 
      while(window.pollEvent(event))
      {
-        switch(event.type)
-        {
-          case sf::Event::Closed:
-            window.close();
-            break;
-          case sf::Event::KeyPressed:
-            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-            {
-               check_collision(initial_block, build_block_y_position, block_vector);
-               std::cout << build_block_y_position << std::endl;
-               build_block.setPosition(build_block.getPosition().x, build_block_y_position);
-               block_vector.push_back(build_block);
-               build_block.setPosition(0, 20);
-               build_block_y_position = 20;
-            }
-            break;
-          default:
-            break;
-         }
-      }
-
+       switch(event.type)
+       {
+         case sf::Event::Closed:
+           window.close();
+           break;
+         case sf::Event::KeyPressed:
+           if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+           {
+              check_collision(build_block_y_position, block_vector);
+              build_block.setPosition(build_block.getPosition().x, build_block_y_position);
+              block_vector.push_back(build_block);
+              build_block.setPosition(0, 20);
+              build_block_y_position = 20;
+           }
+           break;
+         default:
+           break;
+        }
+     }
 
      const double update_time = 10; //milliseconds
-
-
 
      if(clock.getElapsedTime().asMilliseconds() >= update_time)
      {
@@ -85,25 +83,14 @@ int main()
    }
 }
 
-void check_collision(sf::RectangleShape initial_block, int &build_block_y_position, std::vector<sf::RectangleShape> block_vector)
+void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector)
 {
-  if(block_vector.size() == 0)
-  {
-    do
-    {
-      build_block_y_position += 1;
-    }
-    while(build_block_y_position < initial_block.getPosition().y - 50);
-  }
-  else
-  {
     int size = block_vector.size();
     do
     {
       build_block_y_position += 1;
     }
     while(build_block_y_position < block_vector[size - 1].getPosition().y - 50);
-  }
 }
 
 void check_movement_direction(sf::RectangleShape build_block, const int window_width, const int block_size, bool &block_move_right, bool &block_move_left)
