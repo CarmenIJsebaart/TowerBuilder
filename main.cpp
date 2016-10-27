@@ -58,6 +58,8 @@ int main()
    {
      sf::Event event;
 
+     assert(block_vector.size() > 0);
+
      while(window.pollEvent(event))
      {
        switch(event.type)
@@ -68,11 +70,22 @@ int main()
          case sf::Event::KeyPressed:
            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
            {
-              check_collision(build_block_y_position, block_vector, build_block, block_size, game_over_screen);
-              build_block.setPosition(build_block.getPosition().x, build_block_y_position);
-              block_vector.push_back(build_block);
-              build_block.setPosition(0, 20);
-              build_block_y_position = 20;
+              if(game_over_screen == false)
+              {
+                check_collision(build_block_y_position, block_vector, build_block, block_size, game_over_screen);
+                build_block.setPosition(build_block.getPosition().x, build_block_y_position);
+                block_vector.push_back(build_block);
+                build_block.setPosition(0, 20);
+                build_block_y_position = 20;
+              }
+              else
+              {
+                block_vector.clear();
+                block_vector.push_back(initial_block);
+                build_block.setPosition(0, 20);
+                build_block_y_position = 20;
+                game_over_screen = false;
+              }
            }
            break;
          default:
