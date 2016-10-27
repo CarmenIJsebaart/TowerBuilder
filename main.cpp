@@ -2,7 +2,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
-void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector);
+void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector, sf::RectangleShape build_block, const int block_size, bool &game_over_screen);
 void check_movement_direction(sf::RectangleShape build_block, const int window_width, const int block_size, bool &block_move_right, bool &block_move_left);
 void draw_blocks(sf::RenderWindow &window, sf::RectangleShape &build_block, std::vector<sf::RectangleShape> block_vector);
 void move_block(sf::RectangleShape &build_block, bool block_move_right, bool block_move_left);
@@ -40,6 +40,20 @@ int main()
    bool block_move_right = true;
    bool block_move_left = false;
 
+   bool game_over_screen = false;
+   sf::Font font;
+   font.loadFromFile("arial.ttf");
+   sf::Text game_over_tekst("Game Over", font);
+   game_over_tekst.setPosition(0, 175);
+   game_over_tekst.setCharacterSize(55);
+   game_over_tekst.setStyle(sf::Text::Bold);
+   game_over_tekst.setColor(sf::Color::Black);
+   sf::Text game_over_tekst2("Press Space To \n    Start Over", font);
+   game_over_tekst2.setPosition(0, 275);
+   game_over_tekst2.setCharacterSize(40);
+   game_over_tekst2.setStyle(sf::Text::Bold);
+   game_over_tekst2.setColor(sf::Color::Black);
+
    while(window.isOpen())
    {
      sf::Event event;
@@ -54,7 +68,7 @@ int main()
          case sf::Event::KeyPressed:
            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
            {
-              check_collision(build_block_y_position, block_vector);
+              check_collision(build_block_y_position, block_vector, build_block, block_size, game_over_screen);
               build_block.setPosition(build_block.getPosition().x, build_block_y_position);
               block_vector.push_back(build_block);
               build_block.setPosition(0, 20);
@@ -76,21 +90,39 @@ int main()
 
      window.clear();
      window.draw(initial_block);
-     draw_blocks(window, build_block, block_vector);
+     if(game_over_screen == false)
+     {
+       draw_blocks(window, build_block, block_vector);
+     }
+     else
+     {
+       window.clear(sf::Color::Magenta);
+       window.draw(game_over_tekst);
+       window.draw(game_over_tekst2);
+     }
      window.display();
 
      check_movement_direction(build_block, window_width, block_size, block_move_right, block_move_left);
    }
 }
 
-void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector)
+void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector, sf::RectangleShape build_block, const int block_size, bool &game_over_screen)
 {
-    int size = block_vector.size();
+  int size = block_vector.size();
+
+  if(build_block.getPosition().x >= block_vector[size - 1].getPosition().x - block_size &&
+     build_block.getPosition().x <= block_vector[size - 1].getPosition().x + block_size)
+  {
     do
     {
       build_block_y_position += 1;
     }
     while(build_block_y_position < block_vector[size - 1].getPosition().y - 50);
+  }
+  else
+  {
+    game_over_screen = true;
+  }
 }
 
 void check_movement_direction(sf::RectangleShape build_block, const int window_width, const int block_size, bool &block_move_right, bool &block_move_left)
