@@ -8,7 +8,7 @@ void check_movement_direction(sf::RectangleShape build_block, const int window_w
 void draw_blocks(sf::RenderWindow &window, sf::RectangleShape &build_block, std::vector<sf::RectangleShape> block_vector);
 void move_all_blocks_down(std::vector<sf::RectangleShape> &block_vector, const int block_size);
 void move_block(sf::RectangleShape &build_block, bool block_move_right, bool block_move_left);
-void score_on_screen(int &score, sf::Text &score_text, std::ostringstream &oss);
+void score_on_screen(int &score, sf::Text &score_text);
 
 int main()
 {
@@ -58,14 +58,12 @@ int main()
    game_over_tekst2.setColor(sf::Color::Black);
 
    int score = 0;
-   std::ostringstream oss;
    sf::Text score_text;
    score_text.setFont(font);
    score_text.setCharacterSize(40);
    score_text.setColor(sf::Color::White);
    score_text.setPosition(10, 0);
-   score_on_screen(score, score_text, oss);
-
+   score_on_screen(score, score_text);
 
    while(window.isOpen())
    {
@@ -92,7 +90,7 @@ int main()
                 build_block.setPosition(0, 50);
                 build_block_y_position = 50;
                 score = block_vector.size() - 1;
-                score_on_screen(score, score_text, oss);
+                score_on_screen(score, score_text);
               }
               else
               {
@@ -206,9 +204,7 @@ void move_block(sf::RectangleShape &build_block, bool block_move_right, bool blo
   }
 }
 
-void score_on_screen(int &score, sf::Text &score_text, std::ostringstream &oss)
+void score_on_screen(int &score, sf::Text &score_text)
 {
-  oss.str("");
-  oss << score;
-  score_text.setString(oss.str());
+  score_text.setString(std::to_string(score));
 }
