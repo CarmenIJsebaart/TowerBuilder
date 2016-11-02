@@ -3,12 +3,13 @@
 #include <SFML/Graphics.hpp>
 #include <sstream>
 
-void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector, sf::RectangleShape build_block, const int block_size, bool &game_over_screen);
+void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector, sf::RectangleShape build_block, const int block_width, bool &game_over_screen);
 void check_movement_direction(sf::RectangleShape build_block, const int window_width, const int block_size, bool &block_move_right, bool &block_move_left);
 void draw_blocks(sf::RenderWindow &window, sf::RectangleShape &build_block, std::vector<sf::RectangleShape> block_vector);
-void move_all_blocks_down(std::vector<sf::RectangleShape> &block_vector, const int block_size);
+void move_all_blocks_down(std::vector<sf::RectangleShape> &block_vector, const int block_height);
 void move_block(sf::RectangleShape &build_block, bool block_move_right, bool block_move_left);
 void score_on_screen(int &score, sf::Text &score_text);
+void shrink_block(std::vector<sf::RectangleShape> block_vector, sf::RectangleShape &build_block, int &block_width, const int block_height, std::vector<int> block_size_vector);
 
 int main()
 {
@@ -17,6 +18,7 @@ int main()
    sf::RenderWindow window(sf::VideoMode(window_width, window_height), "TowerBuilder", sf::Style::Titlebar | sf::Style::Close);
 
    std::vector<sf::RectangleShape> block_vector;
+   std::vector<int> block_size_vector;
 
    sf::RectangleShape initial_block;
    const int initial_block_size = 50;
@@ -28,13 +30,15 @@ int main()
    initial_block.setFillColor(sf::Color::Yellow);
 
    block_vector.push_back(initial_block);
+   block_size_vector.push_back(initial_block_size);
 
    sf::RectangleShape build_block;
-   int block_size = 50;
+   const int block_height = 50;
+   int block_width = 50;
    int build_block_x_position = 0;
    int build_block_y_position = 50;
 
-   build_block.setSize(sf::Vector2f(block_size, block_size));
+   build_block.setSize(sf::Vector2f(block_width, block_height));
    build_block.setPosition(build_block_x_position, build_block_y_position);
    build_block.setFillColor(sf::Color::Red);
 
@@ -83,10 +87,16 @@ int main()
            {
               if(game_over_screen == false)
               {
-                check_collision(build_block_y_position, block_vector, build_block, block_size, game_over_screen);
+                check_collision(build_block_y_position, block_vector, build_block, block_width, game_over_screen);
                 build_block.setPosition(build_block.getPosition().x, build_block_y_position);
                 block_vector.push_back(build_block);
-                move_all_blocks_down(block_vector, block_size);
+                block_size_vector.push_back(block_width);
+                assert(block_vector.size() == block_size_vector.size());
+
+                move_all_blocks_down(block_vector, block_height);
+                shrink_block(block_vector, build_block, block_width, block_height, block_size_vector);
+                assert(block_size_vector[block_size_vector.size() - 1] <= block_size_vector[block_size_vector.size() - 2]);
+
                 build_block.setPosition(0, 50);
                 build_block_y_position = 50;
                 score = block_vector.size() - 1;
@@ -98,6 +108,10 @@ int main()
                 block_vector.push_back(initial_block);
                 build_block.setPosition(0, 50);
                 build_block_y_position = 50;
+                score = 0;
+                score_on_screen(score, score_text);
+                block_width = 50;
+                build_block.setSize(sf::Vector2f(block_width, block_height));
                 game_over_screen = false;
               }
            }
@@ -129,16 +143,16 @@ int main()
      }
      window.display();
 
-     check_movement_direction(build_block, window_width, block_size, block_move_right, block_move_left);
+     check_movement_direction(build_block, window_width, block_width, block_move_right, block_move_left);
    }
 }
 
-void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector, sf::RectangleShape build_block, const int block_size, bool &game_over_screen)
+void check_collision(int &build_block_y_position, std::vector<sf::RectangleShape> block_vector, sf::RectangleShape build_block, const int block_width, bool &game_over_screen)
 {
   int size = block_vector.size();
 
-  if(build_block.getPosition().x >= block_vector[size - 1].getPosition().x - block_size &&
-     build_block.getPosition().x <= block_vector[size - 1].getPosition().x + block_size)
+  if(build_block.getPosition().x >= block_vector[size - 1].getPosition().x - block_width &&
+     build_block.getPosition().x <= block_vector[size - 1].getPosition().x + block_width)
   {
     do
     {
@@ -179,14 +193,14 @@ void draw_blocks(sf::RenderWindow &window, sf::RectangleShape &build_block, std:
   }
 }
 
-void move_all_blocks_down(std::vector<sf::RectangleShape> &block_vector, const int block_size)
+void move_all_blocks_down(std::vector<sf::RectangleShape> &block_vector, const int block_height)
 {
   int size = block_vector.size();
   if(block_vector[size - 1].getPosition().y <= 200)
   {
     for(auto &block : block_vector)
     {
-      int new_y_position = block.getPosition().y + block_size;
+      int new_y_position = block.getPosition().y + block_height;
       block.setPosition(block.getPosition().x, new_y_position);
     }
   }
@@ -207,4 +221,22 @@ void move_block(sf::RectangleShape &build_block, bool block_move_right, bool blo
 void score_on_screen(int &score, sf::Text &score_text)
 {
   score_text.setString(std::to_string(score));
+}
+
+void shrink_block(std::vector<sf::RectangleShape> block_vector, sf::RectangleShape &build_block, int &block_width, const int block_height, std::vector<int> block_size_vector)
+{
+  int size = block_vector.size();
+
+  //[size - 1] for the block that just dropped and [size - 2] for the block where the block landed on
+  //because the block that dropped is first pushedbacked and then the new block_size is determined
+  if(build_block.getPosition().x + block_size_vector[size - 1] < (block_vector[size - 2].getPosition().x + block_size_vector[size - 2]) && build_block.getPosition().x < block_vector[size - 2].getPosition().x)
+  {
+    block_width = build_block.getPosition().x + block_size_vector[size - 1] - block_vector[size - 2].getPosition().x;
+    build_block.setSize(sf::Vector2f(block_width, block_height));
+  }
+  else if(build_block.getPosition().x > block_vector[size - 2].getPosition().x && (build_block.getPosition().x + block_size_vector[size - 1]) > (block_vector[size - 2].getPosition().x + block_size_vector[size - 2]))
+  {
+    block_width = block_vector[size - 2].getPosition().x + block_size_vector[size - 2] - build_block.getPosition().x;
+    build_block.setSize(sf::Vector2f(block_width, block_height));
+  }
 }
