@@ -106,6 +106,8 @@ int main()
               {
                 block_vector.clear();
                 block_vector.push_back(initial_block);
+                block_size_vector.clear();
+                block_size_vector.push_back(initial_block_size);
                 build_block.setPosition(0, 50);
                 build_block_y_position = 50;
                 score = 0;
