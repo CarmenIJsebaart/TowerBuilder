@@ -1,15 +1,26 @@
 language: cpp
 compiler: gcc
-sudo: require
+sudo: true
 
 before_install:
+  # C++14
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+  # SFML
   - sudo apt-add-repository ppa:sonkun/sfml-development -y
   - sudo apt-get update -qq
+  # Codecov
+  - sudo pip install codecov
 
 install: 
+  # C++14
   - sudo apt-get install -qq g++-5  
+  # SFML
   - sudo apt-get install libsfml-dev
+  # Codecov
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
+  # OCLint
+  - ./install_oclint.sh
 
 # Start virtual X server, from https://docs.travis-ci.com/user/gui-and-headless-browsers/
 before_script:
@@ -23,3 +34,19 @@ script:
   - ./TowerBuilder &
   - sleep 10
   - sudo killall -9 TowerBuilder
+  # Codecov
+  - ./get_code_cov.sh
+  - codecov
+  # OCLint
+  - ./do_oclint.sh
+
+after_success:
+  # Codecov
+  - bash <(curl -s https://codecov.io/bash)
+
+
+
+
+
+
+
